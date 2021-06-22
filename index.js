@@ -1,7 +1,7 @@
 const webSocketsServerPort = 8000;
 const webSocketServer = require('websocket').server;
 const http = require('http');
-
+//console.log(process.env.HostName)
 // Spinning the http server and the websocket server.
 const server = http.createServer();
 server.listen(webSocketsServerPort);
@@ -32,14 +32,15 @@ wsServer.on('request', function (request) {
   // You can rewrite this part of the code to accept only the requests from allowed origin
   const connection = request.accept(null, request.origin);
   clients[userID] = connection;
-  console.log('connected: ' + userID + ' in ' + Object.getOwnPropertyNames(clients));
+ // console.log('connected: ' + userID + ' in ' + Object.getOwnPropertyNames(clients));
 
   connection.on('message', function(message) {
 
     if (message.type === 'utf8') {
-      console.log('Received Message: ', message.utf8Data);
+      // console.log('Received Message: ', message.utf8Data);
 
       let userData =  JSON.parse(message.utf8Data);
+      console.log("Received Messages: User data", userData)
       
      switch(userData.type){
       case "myInfo" :
@@ -52,15 +53,12 @@ wsServer.on('request', function (request) {
         onlineList[user]= {
           username: userData.user
         }
-     
         for(user in onlineUsers) {
           onlineUsers[user].connection.send(JSON.stringify({
             type: "online_users",
             user: onlineList
           }));
         }
-        
-        
         break;
       }
       case "message_2" :{
@@ -68,6 +66,15 @@ wsServer.on('request', function (request) {
           type: "message_2",
           msgFrom: userData.msgFrom,
           msg:userData.msg,
+          msgTo:userData.msgTo,
+        }));
+        break;
+      }
+      case "message_two" :{
+        onlineUsers[userData.msgTo].connection.send(JSON.stringify({
+          type: "message_two",
+          msgFrom: userData.msgFrom,
+          msgBody:userData.msgBody,
           msgTo:userData.msgTo,
         }));
         break;
